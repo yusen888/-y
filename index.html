@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <title>Sonic1 白皮书（官方版）v1.0</title>
+  <meta name="description" content="Sonic1 Whitepaper v1.0 on Base" />
+  <style>
+    :root{
+      --bg:#f7f9ff; --panel:#ffffff; --text:#0b1020; --muted:#5f6b85;
+      --line:rgba(10,20,40,.08);
+      --blue:#0a5bff; --blue2:#002bff; --blueSoft:#cfe1ff;
+      --shadow:0 10px 40px rgba(0,18,60,.08);
+      --r1:12px; --r2:18px; --top:64px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --sans: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+    :root.dark{
+      --bg:#070b16; --panel:#0b1020; --text:#f5f7ff; --muted:#aeb7cf;
+      --line:rgba(210,220,255,.08);
+      --blue:#4f86ff; --blue2:#7aa2ff; --blueSoft:rgba(120,160,255,.16);
+      --shadow:0 12px 50px rgba(0,0,0,.45);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:var(--sans); color:var(--text);
+      background:
+        radial-gradient(900px 520px at 10% -10%, rgba(10,91,255,.10), transparent 60%),
+        radial-gradient(900px 520px at 90% 0%, rgba(0,43,255,.08), transparent 60%),
+        linear-gradient(180deg, var(--bg), var(--bg));
+      overflow-x:hidden;
+    }
+    a{color:inherit; text-decoration:none}
+    .container{width:min(1200px, 92vw); margin:0 auto}
+
+    /* topbar */
+    header{
+      position:sticky; top:0; height:var(--top); z-index:10;
+      backdrop-filter: blur(14px) saturate(160%);
+      background: color-mix(in oklab, var(--panel) 70%, transparent);
+      border-bottom:1px solid var(--line);
+    }
+    .bar{
+      height:100%; display:flex; align-items:center; justify-content:space-between; gap:14px;
+    }
+    .brand{display:flex; align-items:center; gap:10px; padding:6px 8px; border-radius:10px}
+    .dot{width:10px; height:10px; border-radius:50%;
+      background: linear-gradient(135deg, var(--blue2), var(--blue));
+      box-shadow: 0 0 0 4px color-mix(in oklab, var(--blueSoft) 35%, transparent);
+    }
+    .brand b{font-weight:800; letter-spacing:.2px}
+    nav{display:flex; gap:16px; font-size:13px; color:var(--muted)}
+    nav a{padding:6px 2px; border-bottom:1px solid transparent}
+    nav a:hover{color:var(--text); border-bottom-color:color-mix(in oklab, var(--blue) 35%, transparent)}
+
+    .actions{display:flex; gap:8px; align-items:center}
+    .btn, .btn-ghost{
+      height:34px; padding:0 12px; border-radius:10px; font-size:12px; font-weight:600;
+      display:inline-flex; align-items:center; justify-content:center;
+      border:1px solid var(--line); background: color-mix(in oklab, var(--panel) 85%, transparent);
+      cursor:pointer;
+    }
+    .btn{
+      color:#fff; border-color: color-mix(in oklab, var(--blue) 40%, transparent);
+      background: linear-gradient(135deg, var(--blue2), var(--blue));
+      box-shadow: 0 6px 18px color-mix(in oklab, var(--blue) 22%, transparent);
+    }
+
+    /* layout */
+    .layout{
+      display:grid; grid-template-columns: 290px 1fr; gap:26px;
+      padding: 28px 0 70px;
+    }
+
+    /* sidebar */
+    aside .card{
+      position:sticky; top: calc(var(--top) + 16px);
+      background: var(--panel); border:1px solid var(--line);
+      border-radius: var(--r2); padding:20px 16px; box-shadow: var(--shadow);
+    }
+    .side-title{font-weight:800; font-size:18px}
+    .side-sub{color:var(--muted); font-size:12px; margin-top:4px}
+    .toc{margin-top:14px; display:flex; flex-direction:column; gap:6px}
+    .toc a{
+      font-size:12.5px; color:var(--muted); padding:7px 10px; border-radius:9px;
+      border:1px solid transparent;
+    }
+    .toc a:hover{color:var(--text); background: color-mix(in oklab, var(--blueSoft) 22%, transparent)}
+    .toc a.active{
+      color:var(--text);
+      border-color: color-mix(in oklab, var(--blue) 22%, var(--line));
+      background: linear-gradient(135deg, color-mix(in oklab, var(--blueSoft) 28%, transparent), transparent 60%);
+    }
+    .divider{height:1px; background:var(--line); margin:14px 0}
+    .label{font-size:11px; color:var(--muted)}
+    .value{font-size:12.5px; font-weight:600; overflow-wrap:anywhere}
+    .mono{font-family:var(--mono)}
+    .copy{
+      margin-top:8px; width:100%;
+      background: linear-gradient(135deg, color-mix(in oklab, var(--blueSoft) 35%, transparent), transparent);
+    }
+
+    /* hero */
+    .hero{
+      background: var(--panel); border:1px solid var(--line);
+      border-radius: var(--r2); padding:32px 30px 22px; box-shadow: var(--shadow);
+      margin-bottom: 18px;
+      background:
+        linear-gradient(135deg, color-mix(in oklab, var(--blueSoft) 18%, transparent), transparent 45%),
+        var(--panel);
+    }
+    .badge{
+      display:inline-flex; height:26px; padding:0 10px; align-items:center;
+      border-radius:999px; font-size:11px; font-weight:700;
+      color: color-mix(in oklab, var(--blue) 85%, var(--text));
+      border:1px solid color-mix(in oklab, var(--blue) 18%, var(--line));
+      background: linear-gradient(135deg, color-mix(in oklab, var(--blueSoft) 45%, transparent), transparent);
+    }
+    h1{
+      margin:12px 0 8px; font-size: clamp(26px, 3.1vw, 36px);
+      line-height:1.12; font-weight:900;
+    }
+    .lead{color:var(--muted); font-size:14.5px; line-height:1.6}
+    .inline-addr{
+      display:inline-block; padding:2px 6px; border-radius:8px;
+      background: color-mix(in oklab, var(--blueSoft) 22%, transparent);
+      border:1px solid var(--line);
+    }
+    .hero-actions{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px}
+
+    /* sections */
+    .section{
+      background: var(--panel); border:1px solid var(--line);
+      border-radius: var(--r1); padding:26px 26px 20px; margin-bottom: 14px;
+    }
+    .section h2{margin:0 0 12px; font-size: clamp(20px, 2vw, 24px)}
+    .section h3{margin:18px 0 8px; font-size:16px}
+    .section p{margin:0 0 10px; font-size:14.5px; line-height:1.7; color: color-mix(in oklab, var(--text) 92%, var(--muted))}
+    .section ul,.section ol{margin:8px 0 14px 18px; padding:0; font-size:14.5px; line-height:1.65; color: color-mix(in oklab, var(--text) 92%, var(--muted))}
+    blockquote{
+      margin:10px 0 0; padding:14px 16px; border-radius:12px;
+      border:1px solid var(--line);
+      background: linear-gradient(135deg, color-mix(in oklab, var(--blueSoft) 26%, transparent), transparent 55%);
+      font-weight:600; font-size:14.5px; line-height:1.65;
+    }
+
+    .official{
+      border:1px solid var(--line); border-radius: var(--r1);
+      padding:16px 16px 10px;
+      background: linear-gradient(135deg, color-mix(in oklab, var(--blueSoft) 18%, transparent), transparent 55%), var(--panel);
+    }
+    .row{
+      display:grid; grid-template-columns: 140px 1fr; gap:12px;
+      padding:10px 4px; border-bottom:1px solid var(--line);
+    }
+    .row:last-child{border-bottom:none}
+    .k{font-size:12px; color:var(--muted); font-weight:600}
+    .v{font-size:13.5px; font-weight:650; overflow-wrap:anywhere}
+
+    footer{
+      margin-top:24px; border-top:1px solid var(--line); padding-top:14px;
+      display:flex; align-items:center; justify-content:space-between;
+      font-size:12px; color:var(--muted);
+    }
+
+    /* toast */
+    #toast{
+      position:fixed; right:16px; bottom:16px; z-index:50;
+      padding:10px 12px; border-radius:12px;
+      border:1px solid var(--line); background: var(--panel);
+      box-shadow: var(--shadow);
+      font-size:12px; font-weight:600;
+      opacity:0; transform: translateY(6px);
+      pointer-events:none; transition: .18s ease;
+    }
+    #toast.show{opacity:1; transform: translateY(0)}
+
+    /* responsive */
+    @media (max-width: 980px){
+      .layout{grid-template-columns: 1fr}
+      aside .card{position:relative; top:0}
+    }
+    @media (max-width: 720px){
+      nav{display:none}
+    }
+    @media (max-width: 520px){
+      .hero{padding:26px 22px 18px}
+      .section{padding:22px 20px 16px}
+      .row{grid-template-columns: 1fr}
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="container bar">
+      <a class="brand" href="#top">
+        <span class="dot"></span><b>Sonic1</b>
+      </a>
+
+      <nav>
+        <a href="#abstract">摘要</a>
+        <a href="#commitments">核心承诺</a>
+        <a href="#tokenomics">代币经济</a>
+        <a href="#roadmap">路线图</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+
+      <div class="actions">
+        <button class="btn-ghost" id="theme">主题</button>
+        <a class="btn-ghost" href="https://zora.co/@sonic1" target="_blank" rel="noopener noreferrer">Zora</a>
+        <a class="btn" href="#official">官方入口</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="top" class="container layout">
+    <aside>
+      <div class="card">
+        <div class="side-title">Sonic1 白皮书</div>
+        <div class="side-sub">官方版 · v1.0</div>
+
+        <div class="toc">
+          <a class="toc-link" href="#abstract">0. 摘要（Abstract）</a>
+          <a class="toc-link" href="#commitments">1. 核心承诺（产品承诺）</a>
+          <a class="toc-link" href="#problem">2. 背景与问题（Problem）</a>
+          <a class="toc-link" href="#solution">3. 解决方案（Solution）</a>
+          <a class="toc-link" href="#positioning">4. 产品定位（Positioning）</a>
+          <a class="toc-link" href="#mechanisms">5. 核心机制（Core Mechanisms）</a>
+          <a class="toc-link" href="#architecture">6. 技术架构（Technical Architecture）</a>
+          <a class="toc-link" href="#tokenomics">7. 代币经济（Tokenomics）</a>
+          <a class="toc-link" href="#governance">8. 治理（Governance）</a>
+          <a class="toc-link" href="#roadmap">9. 路线图（Roadmap）</a>
+          <a class="toc-link" href="#security">10. 安全与风险（Security & Risk）</a>
+          <a class="toc-link" href="#disclaimer">11. 合规声明（Disclaimer）</a>
+          <a class="toc-link" href="#faq">附录 A：Sonic1 FAQ</a>
+          <a class="toc-link" href="#messaging">附录 B：对外统一口径</a>
+          <a class="toc-link" href="#official">官方入口</a>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="label">生态与主部署网络</div>
+        <div class="value">Base</div>
+
+        <div class="label" style="margin-top:8px">代币发行平台</div>
+        <div class="value">Zora（公平发射）</div>
+
+        <div class="label" style="margin-top:8px">Zora</div>
+        <div class="value">
+          <a href="https://zora.co/@sonic1" target="_blank" rel="noopener noreferrer">
+            https://zora.co/@sonic1
+          </a>
+        </div>
+
+        <div class="label" style="margin-top:8px">代币合约地址</div>
+        <div class="value mono" id="addr">
+          0x0ad828c8a5984409acc6b52deaa2445e0b5cceaf
+        </div>
+
+        <button class="btn-ghost copy" data-copy="0x0ad828c8a5984409acc6b52deaa2445e0b5cceaf">
+          复制合约地址
+        </button>
+      </div>
+    </aside>
+
+    <section>
+      <div class="hero">
+        <span class="badge">Sonic1 白皮书（官方版）</span>
+        <h1>AI 驱动的链上 Dapp 创作与分发平台</h1>
+        <div class="lead">
+          版本：v1.0<br>
+          生态与主部署网络：Base<br>
+          代币发行平台：Zora（公平发射）<br>
+          Zora：<a href="https://zora.co/@sonic1" target="_blank" rel="noopener noreferrer">https://zora.co/@sonic1</a><br>
+          代币合约地址：
+          <span class="mono inline-addr">0x0ad828c8a5984409acc6b52deaa2445e0b5cceaf</span>
+          <button class="btn-ghost" style="height:24px; padding:0 8px; margin-left:6px"
+            data-copy="0x0ad828c8a5984409acc6b52deaa2445e0b5cceaf">复制</button>
+        </div>
+        <div class="hero-actions">
+          <a class="btn" href="#abstract">开始阅读</a>
+          <a class="btn-ghost" href="#tokenomics">直达代币经济</a>
+          <a class="btn-ghost" href="https://zora.co/@sonic1" target="_blank" rel="noopener noreferrer">前往 Zora</a>
+        </div>
+      </div>
+
+      <!-- 0 -->
+      <article id="abstract" class="section">
+        <h2>0. 摘要（Abstract）</h2>
+        <p>Sonic1 是一个构建在 Base 生态上的 AI 驱动 Dapp 创作与分发平台，目标是让任何人都可以以更低门槛、更快速度创建链上应用，并通过清晰透明的收益与激励机制参与生态成长。</p>
+        <p>我们相信下一代 Web3 的新增用户与新增价值，不仅来自交易与投机，更来自可被普通人使用、可被普通人创造的链上应用。<br>
+        Sonic1 以 “Meme → MVP → AI 无代码 → 第三方生态扩张” 为增长路线，将叙事、社区与产品统一进同一个可持续增长飞轮。</p>
+      </article>
+
+      <!-- 1 -->
+      <article id="commitments" class="section">
+        <h2>1. 核心承诺（产品承诺）</h2>
+        <p>Sonic1 的核心承诺基于产品能力与生态机制，而非价格或收益承诺：</p>
+        <ul>
+          <li>人人可创作：通过 AI 辅助与模块化组件降低开发门槛。</li>
+          <li>收益透明：以应用真实使用与协议收入为基础建立分配规则，最大化创作者激励。</li>
+          <li>生态可扩展：以 Base 为核心，采用开放标准与模块化设计，支持跨生态的用户与资产连接。</li>
+        </ul>
+      </article>
+
+      <!-- 2 -->
+      <article id="problem" class="section">
+        <h2>2. 背景与问题（Problem）</h2>
+        <p>Web3 正面临以下结构性瓶颈：</p>
+        <h3>2.1 应用供给不足</h3>
+        <p>多数项目仍停留在“发币—涨跌—叙事轮动”的循环，真正面向用户的 Dapp 供给速度慢、成本高，试错周期长。</p>
+        <h3>2.2 创作者动机不匹配</h3>
+        <p>开发者与创作者在早期难以获得稳定、可验证的回报，优质创作者难以长期留存，应用生态难以形成持续供给。</p>
+        <h3>2.3 链上增长缺乏大众入口</h3>
+        <p>用户进入 Web3 仍依赖复杂交互与专业知识，缺乏更轻量、更娱乐、更具社交传播属性的应用入口。</p>
+      </article>
+
+      <!-- 3 -->
+      <article id="solution" class="section">
+        <h2>3. 解决方案（Solution）</h2>
+        <p>Sonic1 提供一个以 AI 为核心、以创作者收益为驱动的链上应用平台，覆盖 创作—发布—增长—收益 的完整链路：</p>
+        <ul>
+          <li><strong>AI 无代码/低代码 Dapp 生成</strong><br>通过预设模板、链上组件与 AI 生成逻辑，使非专业开发者也能构建应用原型并快速上线。</li>
+          <li><strong>模块化应用市场</strong><br>提供可组合的应用模块，包括 Memo 小应用、任务/积分、社交玩法、链上小游戏与轻量工具等。</li>
+          <li><strong>创作者收益系统</strong><br>依据应用真实使用、协议收入与生态贡献进行结算，形成长期创作激励。</li>
+          <li><strong>跨生态连接</strong><br>对外开放标准化接口，使 Base 上的应用与其他生态的用户与资产更顺畅互通。</li>
+        </ul>
+      </article>
+
+      <!-- 4 -->
+      <article id="positioning" class="section">
+        <h2>4. 产品定位（Positioning）</h2>
+        <p>Sonic1 不是单一 Dapp，也不是仅靠叙事驱动的 Meme。<br>Sonic1 的定位是：</p>
+        <blockquote>
+          AI 驱动的链上 Dapp 创作与分发平台<br>
+          以 Meme 作为冷启动与文化传播工具，<br>
+          以 MVP 与 AI 无代码作为产品落地与长期价值锚点。
+        </blockquote>
+      </article>
+
+      <!-- 5 -->
+      <article id="mechanisms" class="section">
+        <h2>5. 核心机制（Core Mechanisms）</h2>
+        <h3>5.1 创作者经济（Creator Economy）</h3>
+        <p>Sonic1 以“真实贡献可见回报”为原则，创作者可通过以下方式获得价值回报：</p>
+        <ul>
+          <li>应用内协议收入分成</li>
+          <li>平台激励（任务、竞赛、生态基金）</li>
+          <li>组件/模板售卖</li>
+          <li>社区增长与运营贡献奖励</li>
+        </ul>
+        <p>Sonic1 旨在最大化创作者收益，平台仅保留维持基础设施与生态激励所需的合理比例，并以透明规则进行披露与执行。</p>
+
+        <h3>5.2 用户增长飞轮（Growth Flywheel）</h3>
+        <ol>
+          <li>Meme 与社区传播带来早期用户</li>
+          <li>用户参与基础应用与任务体系</li>
+          <li>创作者用 Sonic1 快速产出新应用</li>
+          <li>更多应用带来更多用户与使用场景</li>
+          <li>收益与激励反哺创作者</li>
+          <li>生态扩张进入正循环</li>
+        </ol>
+      </article>
+
+      <!-- 6 -->
+      <article id="architecture" class="section">
+        <h2>6. 技术架构（Technical Architecture）</h2>
+        <h3>6.1 基础设施</h3>
+        <ul>
+          <li>以 Base 作为主要部署与结算网络</li>
+          <li>关键合约遵循安全优先与可验证原则</li>
+          <li>分阶段开放 SDK 与组件标准</li>
+        </ul>
+        <h3>6.2 AI 生成层</h3>
+        <ul>
+          <li>负责应用脚手架生成、交互逻辑建议与前端模板组合</li>
+          <li>引入安全规则集与风险分级，限制高风险逻辑的误用</li>
+          <li>路径演进：模板生成 → 组件组合 → 自然语言生成 Dapp</li>
+        </ul>
+        <h3>6.3 组件市场</h3>
+        <ul>
+          <li>基础模块：用户系统、积分、任务、NFT/Token 操作</li>
+          <li>增强模块：社交、游戏、链上数据可视化</li>
+          <li>允许第三方组件上架，提高生态可组合性与扩展性能</li>
+        </ul>
+        <h3>6.4 跨链与互操作</h3>
+        <ul>
+          <li>采用开放标准推进跨生态互通</li>
+          <li>目标是让 Base 上的应用更自然地触达更广泛的用户与资产网络</li>
+        </ul>
+      </article>
+
+      <!-- 7 -->
+      <article id="tokenomics" class="section">
+        <h2>7. 代币经济（Tokenomics）</h2>
+        <p>Sonic1 的代币设计以 生态建设、创作者增长与长期可持续 为核心。</p>
+        <h3>7.1 代币用途（Utility）</h3>
+        <p>$SONIC1 作为生态内关键资产，用于：</p>
+        <ul>
+          <li>创作者激励与生态奖励</li>
+          <li>平台任务、竞赛与增长活动</li>
+          <li>生态治理（参数调整、基金使用、生态提案）</li>
+          <li>组件/模板/服务的潜在支付与结算媒介</li>
+          <li>应用内经济媒介（由应用选择是否采用）</li>
+        </ul>
+        <h3>7.2 总量与发行方式</h3>
+        <ul>
+          <li>总供应量：1,000,000,000（10 亿）枚</li>
+          <li>发行方式：Zora 公平发射（Fair Launch）</li>
+          <li>增发机制：无增发</li>
+        </ul>
+        <h3>7.3 锁仓与释放</h3>
+        <ul>
+          <li>锁仓比例：50%</li>
+          <li>释放周期：5 年线性释放</li>
+        </ul>
+        <p>该机制旨在：</p>
+        <ul>
+          <li>降低短期抛压的不确定性</li>
+          <li>使代币释放节奏与产品落地、生态增长保持一致</li>
+          <li>强化长期建设导向</li>
+        </ul>
+        <h3>7.4 回购与销毁（Buyback & Burn）</h3>
+        <p>
+          Sonic1 设立 回购 + 销毁 的长期机制框架，<br>
+          以生态发展与产品进度为锚点、以透明规则为执行原则，<br>
+          用于强化长期价值建设与生态健康度。
+        </p>
+      </article>
+
+      <!-- 8 -->
+      <article id="governance" class="section">
+        <h2>8. 治理（Governance）</h2>
+        <p>Sonic1 采用渐进式治理：</p>
+        <ul>
+          <li>早期：核心团队 + 社区委员会协作</li>
+          <li>中期：链上提案与投票机制</li>
+          <li>后期：多签治理 → DAO 化治理</li>
+        </ul>
+        <p>治理议题包括：</p>
+        <ul>
+          <li>生态基金使用与激励策略</li>
+          <li>核心协议参数</li>
+          <li>安全升级与版本路线</li>
+          <li>组件标准与生态扩展方向</li>
+          <li>回购与销毁机制的透明披露与治理共识</li>
+        </ul>
+      </article>
+
+      <!-- 9 -->
+      <article id="roadmap" class="section">
+        <h2>9. 路线图（Roadmap）</h2>
+        <h3>阶段 1：Meme 与社区扩张</h3>
+        <p>目标：构建文化共识、吸引早期创作者与传播者</p>
+        <p>输出：</p>
+        <ul><li>社区任务系统</li><li>基础 Demo 应用</li><li>创作者活动与激励体系</li></ul>
+        <h3>阶段 2：核心平台 MVP</h3>
+        <p>目标：上线最小可用平台闭环</p>
+        <p>输出：</p>
+        <ul><li>Dapp 模板库</li><li>基础组件</li><li>创作者发布与基础结算能力</li></ul>
+        <h3>阶段 3：AI 无代码创作</h3>
+        <p>目标：显著降低应用生产成本与试错门槛</p>
+        <p>输出：</p>
+        <ul><li>自然语言生成应用原型</li><li>一键部署与安全检查</li></ul>
+        <h3>阶段 4：第三方生态扩张</h3>
+        <p>目标：成为 Base 上的重要 Dapp 增长引擎</p>
+        <p>输出：</p>
+        <ul><li>SDK</li><li>组件市场开放</li><li>跨生态合作</li></ul>
+        <h3>阶段 5：自我维持增长与规模化</h3>
+        <p>目标：平台收入与生态激励形成自循环</p>
+        <p>输出：</p>
+        <ul><li>DAO 治理稳定运行</li><li>生态激励与增长机制成熟</li></ul>
+      </article>
+
+      <!-- 10 -->
+      <article id="security" class="section">
+        <h2>10. 安全与风险（Security & Risk）</h2>
+        <p>Sonic1 明确承认 Web3 项目存在以下风险：</p>
+        <ul>
+          <li>智能合约漏洞风险</li><li>市场波动风险</li><li>生态协作不确定性</li>
+          <li>监管与合规变化风险</li><li>跨链与第三方组件的额外安全边界</li>
+        </ul>
+        <p>对应缓释策略：</p>
+        <ul>
+          <li>分阶段安全审计与漏洞赏金计划</li>
+          <li>核心合约最小化复杂度与攻击面</li>
+          <li>高风险功能分级管理</li>
+          <li>关键参数与版本变更透明披露</li>
+        </ul>
+      </article>
+
+      <!-- 11 -->
+      <article id="disclaimer" class="section">
+        <h2>11. 合规声明（Disclaimer）</h2>
+        <p>
+          Sonic1 的代币与生态激励旨在支持平台使用、治理与创作者经济。<br>
+          本白皮书不构成证券发行、投资建议或任何收益保证。<br>
+          参与者应基于自身风险承受能力进行独立判断。
+        </p>
+      </article>
+
+      <!-- FAQ -->
+      <article id="faq" class="section">
+        <h2>附录 A：Sonic1 FAQ</h2>
+        <h3>Q1：你们到底是 Meme 还是做产品？</h3>
+        <p>A：Sonic1 以 Meme 作为冷启动与文化传播工具，但产品方向明确：AI 驱动的链上 Dapp 创作与分发平台。MVP 与 AI 无代码是长期价值锚点。</p>
+        <h3>Q2：为什么选择 Base？</h3>
+        <p>A：Base 具备强用户增长潜力、开发者友好环境与良好的生态协同空间，适合承载高频、轻量、多样化的 Dapp 创作与分发。</p>
+        <h3>Q3：Sonic1 的护城河是什么？</h3>
+        <p>A：</p>
+        <ol>
+          <li>AI + 模块化组件降低创作门槛</li>
+          <li>创作者收益与激励机制带来持续供给</li>
+          <li>社区文化与分发能力形成增长飞轮</li>
+        </ol>
+        <h3>Q4：代币怎么用？</h3>
+        <p>A：$SONIC1 用于生态激励、治理与组件/模板等潜在支付与结算场景。Sonic1 优先建设真实使用与长期生态价值。</p>
+        <h3>Q5：如何避免只炒币不做事？</h3>
+        <p>A：Sonic1 以可验证里程碑为导向推进，确保每一阶段均有可交付产出（模板、组件、MVP、SDK、安全机制等）。</p>
+      </article>
+
+      <!-- Messaging -->
+      <article id="messaging" class="section">
+        <h2>附录 B：对外统一口径</h2>
+        <h3>一句话版本</h3>
+        <p>Sonic1 = Base 上的 AI Dapp 创作与分发引擎，让每个人都能创建链上应用并参与生态价值增长。</p>
+        <h3>三句话版本</h3>
+        <ol>
+          <li>我们用 Meme 做冷启动，但不止于 Meme。</li>
+          <li>Sonic1 正在建设 AI 驱动的链上 Dapp 平台。</li>
+          <li>从模板 → MVP → AI 无代码 → 开放生态，让“人人可创作”成为现实。</li>
+        </ol>
+      </article>
+
+      <!-- Official -->
+      <article id="official" class="section">
+        <h2>官方入口</h2>
+        <div class="official">
+          <div class="row">
+            <div class="k">Zora</div>
+            <div class="v">
+              <a href="https://zora.co/@sonic1" target="_blank" rel="noopener noreferrer">https://zora.co/@sonic1</a>
+            </div>
+          </div>
+          <div class="row">
+            <div class="k">$SONIC1 合约地址</div>
+            <div class="v mono">
+              0x0ad828c8a5984409acc6b52deaa2445e0b5cceaf
+              <button class="btn-ghost" style="height:24px; padding:0 8px; margin-left:6px"
+                data-copy="0x0ad828c8a5984409acc6b52deaa2445e0b5cceaf">复制</button>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <footer>
+        <span>Sonic1 · Whitepaper v1.0</span>
+        <a href="#top">回到顶部</a>
+      </footer>
+    </section>
+  </main>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const root = document.documentElement;
+    const themeBtn = document.getElementById("theme");
+    const toast = document.getElementById("toast");
+
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.classList.add("show");
+      clearTimeout(showToast.t);
+      showToast.t = setTimeout(()=>toast.classList.remove("show"), 1200);
+    }
+
+    function applyTheme(mode){
+      if(mode === "dark") root.classList.add("dark");
+      else root.classList.remove("dark");
+      try{ localStorage.setItem("sonic1-theme", mode); }catch(e){}
+    }
+
+    (function initTheme(){
+      let stored = null;
+      try{ stored = localStorage.getItem("sonic1-theme"); }catch(e){}
+      if(stored){ applyTheme(stored); return; }
+      const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      applyTheme(prefersDark ? "dark" : "light");
+    })();
+
+    themeBtn.addEventListener("click", ()=>{
+      applyTheme(root.classList.contains("dark") ? "light" : "dark");
+      showToast(root.classList.contains("dark") ? "深色模式" : "浅色模式");
+    });
+
+    async function copyText(text){
+      try{
+        await navigator.clipboard.writeText(text);
+        showToast("已复制");
+      }catch{
+        const ta = document.createElement("textarea");
+        ta.value = text; ta.style.position="fixed"; ta.style.opacity="0";
+        document.body.appendChild(ta); ta.focus(); ta.select();
+        try{ document.execCommand("copy"); showToast("已复制"); }
+        catch{ showToast("复制失败"); }
+        document.body.removeChild(ta);
+      }
+    }
+
+    document.querySelectorAll("[data-copy]").forEach(el=>{
+      el.addEventListener("click", ()=>copyText(el.getAttribute("data-copy")));
+    });
+
+    // toc active highlight
+    const tocLinks = [...document.querySelectorAll(".toc-link")];
+    const targets = tocLinks.map(a => document.querySelector(a.getAttribute("href"))).filter(Boolean);
+    const io = new IntersectionObserver((entries)=>{
+      const v = entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio);
+      if(!v.length) return;
+      const id = "#" + v[0].target.id;
+      tocLinks.forEach(a=>a.classList.toggle("active", a.getAttribute("href")===id));
+    }, { rootMargin:"-35% 0px -55% 0px", threshold:[0.01,0.2,0.6,1] });
+    targets.forEach(t=>io.observe(t));
+  </script>
+</body>
+</html>
